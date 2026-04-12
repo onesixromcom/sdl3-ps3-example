@@ -1,0 +1,142 @@
+/*
+ * This example creates an SDL window and renderer, and then draws some
+ * textures to it every frame.
+ *
+ * This code is public domain. Feel free to use it for any purpose!
+ */
+
+#define SDL_MAIN_USE_CALLBACKS 1  /* use the callbacks instead of main() */
+#include <SDL3/SDL.h>
+#include <SDL3/SDL_main.h>
+
+#include "res_sample.h"
+
+/* We will use this renderer to draw into this window every frame. */
+static SDL_Window *window = NULL;
+static SDL_Renderer *renderer = NULL;
+static SDL_Texture *texture = NULL;
+static int texture_width = 0;
+static int texture_height = 0;
+
+#define WINDOW_WIDTH 720
+#define WINDOW_HEIGHT 576
+
+/* This function runs once at startup. */
+SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
+{
+    SDL_Surface *surface = NULL;
+
+    SDL_SetAppMetadata("Example Renderer Textures", "1.0", "com.example.renderer-textures");
+
+    if (!SDL_Init(SDL_INIT_VIDEO)) {
+        SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
+SDL_WindowFlags flags = SDL_WINDOW_RESIZABLE;
+    #ifdef PS3
+    flags=SDL_WINDOW_BORDERLESS;
+    #endif
+    if (!SDL_CreateWindowAndRenderer("test", WINDOW_WIDTH, WINDOW_HEIGHT, flags, &window, &renderer)) {
+        return SDL_APP_FAILURE;
+    }
+    SDL_SetRenderLogicalPresentation(renderer, WINDOW_WIDTH, WINDOW_HEIGHT, SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
+    SDL_IOStream *fp = SDL_IOFromConstMem(res_sample, res_sample_len);
+    surface = SDL_LoadPNG_IO(fp, true);
+    if (!surface) {
+        SDL_Log("Couldn't load bitmap: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
+    texture_width = surface->w;
+    texture_height = surface->h;
+
+    texture = SDL_CreateTextureFromSurface(renderer, surface);
+    if (!texture) {
+        SDL_Log("Couldn't create static texture: %s", SDL_GetError());
+        return SDL_APP_FAILURE;
+    }
+
+    SDL_DestroySurface(surface);  /* done with this, the texture has a copy of the pixels now. */
+
+    return SDL_APP_CONTINUE;  /* carry on with the program! */
+}
+
+/* This function runs when a new event (mouse input, keypresses, etc) occurs. */
+SDL_AppResult SDL_AppEvent(void *appstate, SDL_Event *event)
+{
+    if (event->type == SDL_EVENT_QUIT) {
+        return SDL_APP_SUCCESS;  /* end the program, reporting success to the OS. */
+    }
+    return SDL_APP_CONTINUE;  /* carry on with the program! */
+}
+
+/* This function runs once per frame, and is the heart of the program. */
+SDL_AppResult SDL_AppIterate(void *appstate)
+{
+    SDL_FRect dst_rect;
+    const Uint64 now = SDL_GetTicks();
+    const double now2 = ((double)SDL_GetTicks()) / 1000.0;
+    /* choose the color for the frame we will draw. The sine wave trick makes it fade between colors smoothly. */
+    const float red = (float) (0.5 + 0.5 * SDL_sin(now2));
+    const float green = (float) (0.5 + 0.5 * SDL_sin(now2 + SDL_PI_D * 2 / 3));
+    const float blue = (float) (0.5 + 0.5 * SDL_sin(now2 + SDL_PI_D * 4 / 3));
+    SDL_SetRenderDrawColorFloat(renderer, red, green, blue, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
+  
+    //     // /* clear the window to the draw color. */
+    SDL_RenderClear(renderer);
+
+    /* we'll have some textures move around over a few seconds. */
+    const float direction = ((now % 2000) >= 1000) ? 1.0f : -1.0f;
+    const float scale = ((float) (((int) (now % 1000)) - 500) / 500.0f) * direction;
+
+    /* Just draw the static texture a few times. You can think of it like a
+       stamp, there isn't a limit to the number of times you can draw with it. */
+
+    /* top left */
+    dst_rect.x = (100.0f * scale);
+    dst_rect.y = 0.0f;
+    dst_rect.w = (float) texture_width;
+    dst_rect.h = (float) texture_height;
+    SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
+
+    /* center this one. */
+    dst_rect.x = ((float) (WINDOW_WIDTH - texture_width)) / 2.0f;
+    dst_rect.y = ((float) (WINDOW_HEIGHT - texture_height)) / 2.0f;
+    dst_rect.w = (float) texture_width;
+    dst_rect.h = (float) texture_height;
+    SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
+
+    // /* bottom right. */
+    dst_rect.x = ((float) (WINDOW_WIDTH - texture_width)) - (100.0f * scale);
+    dst_rect.y = (float) (WINDOW_HEIGHT - texture_height);
+    dst_rect.w = (float) texture_width;
+    dst_rect.h = (float) texture_height;
+    SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
+
+    // /* top down right. */
+    dst_rect.x = ((float) (WINDOW_WIDTH - texture_width));
+    dst_rect.y = (float) (100.0f * scale);
+    dst_rect.w = (float) texture_width;
+    dst_rect.h = (float) texture_height;
+    SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
+
+    // /* top down left. */
+    dst_rect.x = 0;
+    dst_rect.y = ((float) (WINDOW_HEIGHT - texture_height)) - (100.0f * scale);
+    dst_rect.w = (float) texture_width;
+    dst_rect.h = (float) texture_height;
+    SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
+
+    SDL_RenderPresent(renderer);  /* put it all on the screen! */
+
+    return SDL_APP_CONTINUE;  /* carry on with the program! */
+}
+
+/* This function runs once at shutdown. */
+void SDL_AppQuit(void *appstate, SDL_AppResult result)
+{
+    SDL_DestroyTexture(texture);
+    /* SDL will clean up the window/renderer for us. */
+}
