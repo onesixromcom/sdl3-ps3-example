@@ -64,7 +64,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
 
 target_link_options(${PROJECT_NAME} PRIVATE
     -Wl,-q             # preserve relocs for OPD
-    -Wl,--gc-sections  # ✅ remove unused sections
+    -Wl,--gc-sections  # remove unused sections
 )
 
 function(add_ps3_build_steps target)
