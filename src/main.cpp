@@ -26,7 +26,7 @@ SDL_AppResult SDL_AppInit(void **appstate, int argc, char *argv[])
 {
     SDL_Surface *surface = NULL;
 
-    SDL_SetAppMetadata("Example Renderer Textures", "1.0", "com.example.renderer-textures");
+    SDL_SetAppMetadata("PS3 Example Renderer Textures", "1.0", "com.example.ps3-renderer-textures");
 
     if (!SDL_Init(SDL_INIT_VIDEO)) {
         SDL_Log("Couldn't initialize SDL: %s", SDL_GetError());
@@ -84,7 +84,7 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     const float blue = (float) (0.5 + 0.5 * SDL_sin(now2 + SDL_PI_D * 4 / 3));
     SDL_SetRenderDrawColorFloat(renderer, red, green, blue, SDL_ALPHA_OPAQUE_FLOAT);  /* new color, full alpha. */
   
-    //     // /* clear the window to the draw color. */
+    /* clear the window to the draw color. */
     SDL_RenderClear(renderer);
 
     /* we'll have some textures move around over a few seconds. */
@@ -108,21 +108,21 @@ SDL_AppResult SDL_AppIterate(void *appstate)
     dst_rect.h = (float) texture_height;
     SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
 
-    // /* bottom right. */
+    /* bottom right. */
     dst_rect.x = ((float) (WINDOW_WIDTH - texture_width)) - (100.0f * scale);
     dst_rect.y = (float) (WINDOW_HEIGHT - texture_height);
     dst_rect.w = (float) texture_width;
     dst_rect.h = (float) texture_height;
     SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
 
-    // /* top down right. */
+    /* top down right. */
     dst_rect.x = ((float) (WINDOW_WIDTH - texture_width));
     dst_rect.y = (float) (100.0f * scale);
     dst_rect.w = (float) texture_width;
     dst_rect.h = (float) texture_height;
     SDL_RenderTexture(renderer, texture, NULL, &dst_rect);
 
-    // /* top down left. */
+    /* top down left. */
     dst_rect.x = 0;
     dst_rect.y = ((float) (WINDOW_HEIGHT - texture_height)) - (100.0f * scale);
     dst_rect.w = (float) texture_width;

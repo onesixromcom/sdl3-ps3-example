@@ -1,6 +1,3 @@
-// Auto-generated from: /home/andrii/work/rom2-projects-cpp/test-ps3/bin/linux/sample.png
-// Size: 24744 bytes
-
 #ifndef res_sample_H
 #define res_sample_H
 
